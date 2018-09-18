@@ -19,7 +19,15 @@
 
         <!-- 拖拽的展示区域 -->
         <div class="library-drag" ref="library">
-            <library-drag-component :data="drawComponentLists" />
+            <el-tabs>
+                <el-tab-pane label="拖拽区域">
+                    <library-drag-component :data="findComponentLists" />
+                </el-tab-pane>
+                <el-tab-pane label="代码区域">
+                   <library-code-view :data="findComponentLists" />
+                </el-tab-pane>
+            </el-tabs>
+            
         </div>
 
         <!-- 可以拖拽的组件库 -->
@@ -28,13 +36,13 @@
                 style="width:100px;display:inline-block;margin: 0 5px" 
                 v-for="(item, index) in cardLists" 
                 :key="index"
-                @click.native="openLibraryListHandler">
+                @click.native="openLibraryListHandler(item.name)">
                 <img :src="item.url" style="width:100%" />
                 <span style="font-size:12px;">{{item.name}}</span>
             </el-card>
         </el-scrollbar>
 
-        <library-detail-list :visible.sync="libraryvisible" :data="currentComponentLists" />
+        <library-detail-list :visible.sync="libraryvisible" :data="libraryLists" />
     </div>
 </template>
 
@@ -43,9 +51,10 @@ import { Scrollbar, Alert, Card } from 'element-ui'
 import { packageServer } from '@/utils/request'
 import { asyncDownloadScript } from '@/utils/utils'
 import InstallLists from './InstallLists'
+import LibraryCodeView from './LibraryCodeView'
 import LibraryDragComponent from './LibraryDragComponent.js'
 import LibraryDetailList from './LibraryDetailList'
-import { mapState, mapMutations, mapGetters } from 'vuex'
+import { mapState, mapMutations, mapGetters, mapActions } from 'vuex'
 
 export default {
     components: { 
@@ -53,6 +62,7 @@ export default {
         ElAlert: Alert, 
         ElCard: Card,
         InstallLists,
+        LibraryCodeView,
         LibraryDetailList,
         LibraryDragComponent
     },
@@ -60,18 +70,11 @@ export default {
     data() {
         return {
             libraryvisible: false,
-            componentId: 0,
+            libraryLists: [],
             cardLists: [
                 {
                     url: 'https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1536497171749&di=fda7c622fdecbd19ffc9a49f6a8a1d3d&imgtype=0&src=http%3A%2F%2Fp1.qzone.la%2Fupload%2F1%2F5yfs506e.jpg',
-                    name: 'element-ui',
-                    component: 'el-input'
-                },
-                {
-                    url: 'https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1536497171749&di=9ea10ec9e49b6f6ddbed9fde07d3008f&imgtype=0&src=http%3A%2F%2Fp1.qzone.la%2Fupload%2F5%2Fj1jlyyfe.jpg',
-                    name: 'iview',
-                    component: 'i-button',
-                    resource: 'https://unpkg.com/iview@3.1.0/dist/iview.min.js'
+                    name: 'element-ui'
                 }
             ],
             dragLists: []
@@ -112,10 +115,15 @@ export default {
 
     methods: {
         ...mapMutations('Main', ['saveDrawComponents']),
+        ...mapActions('Main', ['getLibraryChilds']),
 
         // 打开资源库的子组件列表
-        openLibraryListHandler() {
-            this.libraryvisible = true;
+        openLibraryListHandler(name) {
+            this.getLibraryChilds(name).then(data => {
+                this.libraryvisible = true;
+                this.libraryLists = data;
+            })
+            
         }
     }
 }

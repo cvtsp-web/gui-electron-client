@@ -5,7 +5,6 @@ import store from './store'
 import '@/utils/menus'
 import '@/utils/global-elementui'
 import Drag from '@/utils/directive/drag'
-import './install'
 
 if (!process.env.IS_WEB) Vue.use(require('vue-electron'))
 Vue.config.productionTip = false

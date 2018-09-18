@@ -20,7 +20,7 @@ export default {
             contextmenu: null,
             startClick: null,
             // 当前选中的数据
-            currentData: null,
+            currentData: {},
             currentSlot: '',
             dialog: {
                 visible: false,
@@ -32,27 +32,22 @@ export default {
     },
 
     computed: {
-        findComponentLists() {
-            const results = this.getTrees(this.data, 0);      
-            return results;      
-        }
+        // queryComponentLists() {
+        //     return this.getTrees(this.data, 0);      
+        // }
     },
 
     mounted() {
         this.$dragging.$on('dragged', ({draged, to, group}) => {
             if(group === 'draw') {
                 if(Array.isArray(to.slots) && to.slots.length > 0) {
+                    this.currentSlot = '';
                     this.dialog.visible = true;
                     this.dialog.from = draged;
                     this.dialog.to = to;
                 }else {
                     Message.warning('没有插槽,无法插入!')
                 }
-                
-                // this.modifyDrawComponents({
-                //     ...draged,
-                //     pid: to.id
-                // });
             }
         });
 
@@ -67,7 +62,7 @@ export default {
     render(h) {
         return h(
             'div', 
-            this.iterationComponents(h, this.findComponentLists)
+            this.iterationComponents(h, this.data)
             .concat([this.renderPopoverTpl(), this.renderDialogTpl()])
         );
     },
@@ -79,13 +74,28 @@ export default {
         ]),
 
         renderPopoverTpl() {
+            // 动态生成form-item
+            const formItem = this.currentData 
+                && Array.isArray(this.currentData.propLists)
+                && this.currentData.propLists.map(item => {
+                return (
+                    <el-form-item label={item.name + ':'}>
+                        {
+                            item.type === 'boolean' 
+                                ? <el-switch value={item.input} onChange={(val) => item.input = val} /> 
+                                : <el-input value={item.input} onChange={(val) => item.input = val} />
+                        }
+                    </el-form-item>
+                )
+            });
             return (
                 <el-popover 
                     ref="popover" 
                     placement="bottom">
                     <div ref="content">
-                        <el-form>
-                            <el-form label="删除">
+                        <el-form model={this.currentData} label-width="80px" ref="propsform">
+                            {formItem}
+                            <el-form label="删除" style={{textAlign: 'center'}}>
                                 <el-button size="mini" type="primary" onClick={this.saveFromLibrary}>保存配置</el-button>
                                 <el-button size="mini" onClick={this.removeFromLibrary}>删除</el-button>
                             </el-form>
@@ -100,34 +110,56 @@ export default {
                 <el-dialog {...{
                     props: {
                         visible: this.dialog.visible,
-                        title: this.dialog.title
+                        title: this.dialog.title,
+                        width: '30%'
                     },
                     on:{'update:visible': (val) => this.dialog.visible = val}}}>
-                    <el-select value={this.currentSlot} onChange={this.dialogSlotChange}>
+                    <el-select 
+                        style={{width:'100%'}} 
+                        value={this.currentSlot} 
+                        onChange={(val) => this.currentSlot = val}>
                         {
                            this.dialog.to && this.dialog.to.slots.map(slot => (
                                <el-option label={slot} value={slot}></el-option>
                            ))
                         }
                     </el-select>
+                    <span slot="footer">
+                        <el-button onClick={() => this.dialog.visible = false}>取 消</el-button>
+                        <el-button type="primary" onClick={this.handlerConfirm}>确 定</el-button>
+                    </span>
                 </el-dialog>
             )
         },
 
-        dialogSlotChange(val) {
-            console.log(val)
-            this.currentSlot = val;
+        /**
+        * 弹框确定事件
+        * currentSlot为空 只关闭弹框
+        */
+        handlerConfirm() {
+            const { from, to } = this.dialog;
+            if(this.currentSlot === '') {
+                return this.dialog.visible = false;
+            };
+
+            this.modifyDrawComponents({
+                ...from,
+                slot: this.currentSlot,
+                pid: to.id
+            });
+            this.dialog.visible = false;
         },
 
         iterationComponents(h, components) {
             if(!components.length) return [];
-
+            
             return components.map(component => {
                 return h(
                     component.name, 
                     {   
                         props: {
-                            key: component.id
+                            key: component.id,
+                            ...component.props
                         },
                         nativeOn: {
                             contextmenu: (event) => this.handlerContextmenu(event, component)
@@ -137,21 +169,24 @@ export default {
                                 name: 'dragging',
                                 value: {item: component, group: 'draw', key: component.id}
                             }
-                        ]
+                        ],
+                        slot: component.slot
                     }, 
-                    component.children ? this.iterationComponents(h, component.children) : []
+                    this.iterationComponents(h, component.children)
                 );
            });
         },
 
         handlerContextmenu(event, mess) {  
+            event.stopPropagation();
             this.contextmenu = event.target;
             this.mixins_hidePopover(this.$refs['popover']);
+            // 赋值当前的数据信息
             this.currentData = mess;
 
             setTimeout(() => {
                 this.mixins_showPopover(this.$refs['popover'], event.target)
-            });
+            }, 0);
             
         },
 
@@ -162,7 +197,7 @@ export default {
                 content.parentNode.style.display !== 'none' &&
                 this.contextmenu !== content &&
                 mouseup.target !== content) {
-                if(this.contextmenu !== mouseup.target || content.contains(mousedown.target))
+                if(this.contextmenu !== mouseup.target && !content.contains(mousedown.target))
                 this.mixins_hidePopover(this.$refs['popover'])
             }
         },
@@ -172,11 +207,27 @@ export default {
          */
         removeFromLibrary() {
             if(!this.currentData) return;
+            this.mixins_hidePopover(this.$refs['popover']);
             this.deleteDrawComponents(this.currentData.id);
         },
 
+        /**
+        * 保存的修改的props属性
+        */
         saveFromLibrary() {
-            
+            this.$refs['propsform'].validate(valid => {
+                var props = {};
+                if(Array.isArray(this.currentData.propLists)) {
+                    this.currentData.propLists.forEach(val => {
+                        props[val.name] = val.input;
+                    })
+                };
+                this.modifyDrawComponents({
+                    ...this.currentData,
+                    props
+                });    
+                this.mixins_hidePopover(this.$refs['popover']);    
+            })
         },
 
         /**

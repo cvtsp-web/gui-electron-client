@@ -13,9 +13,26 @@ export default {
     drawComponentLists: [],
     // 当前展示的组件列表
     currentComponentLists: [
-      { name: 'el-input', slots: ['prefix', 'suffix', 'prepend', 'append']},
-      { name: 'el-button'},
-      { name: 'el-switch'}
+      { 
+        name: 'el-input', 
+        slots: ['prefix', 'suffix', 'prepend', 'append'], 
+        propLists: [
+          {name: 'clearable', type: 'boolean', input: false}, 
+          {name: 'value', input: ''},
+          {name: 'placeholder', input: ''},
+          {name: 'disabled', type: 'boolean', input: false},
+          {name: 'size', input: 'small'}
+        ]
+      },
+      { name: 'el-button', slots: ['default']},
+      { name: 'el-switch'},
+      { name: 'el-pagination'},
+      { name: 'el-autocomplete'},
+      { name: 'el-menu'},
+      { name: 'el-input-number'},
+      { name: 'el-table'},
+      { name: 'el-date-picker'},
+      { name: 'el-tabs'}
     ]
   },
 
@@ -69,11 +86,15 @@ export default {
 
   actions: {
     // 获取组件库的子集合
-    getLibraryChilds({state}, params) {
+    getLibraryChilds({state}, name) {
       return new Promise(resolve => {
         setTimeout(() => {
-          resolve(state.currentComponentLists);
-        }, 2000);
+          if(name === 'element-ui'){
+            resolve(state.currentComponentLists);
+          }else {
+            resolve(state.iViewComponentLists);
+          }
+        }, 0);
       })
     }
   },
@@ -83,7 +104,7 @@ export default {
     * 将扁平化数组---> 嵌套数组
      */
     findComponentLists(state) {
-      var lists = state.drawComponentLists.concat([]);
+      var lists = state.drawComponentLists.concat();
       return lists.length > 0 ? getTrees(lists, 0) : [];
     }
   }
