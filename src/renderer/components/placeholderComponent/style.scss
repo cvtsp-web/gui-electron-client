@@ -1,0 +1,7 @@
+@import '../../../../element-variables.scss';
+.default-component {
+    height: 100px;
+    background: $--color-white;
+    box-shadow: $--box-shadow-dark;
+    margin: 3px 5px;
+}

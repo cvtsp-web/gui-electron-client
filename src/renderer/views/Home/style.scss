@@ -7,5 +7,8 @@
         width: 200px;
         background-color: #fff;
         padding-top: 20px;
+        .el-select-dropdown__wrap{
+            max-height: 240px;
+        }
     }
 }

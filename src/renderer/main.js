@@ -5,13 +5,12 @@ import store from './store'
 import '@/utils/menus'
 import '@/utils/global-elementui'
 import Drag from '@/utils/directive/drag'
+import PlaceholderComponent from '@/components/placeholderComponent'
 
 if (!process.env.IS_WEB) Vue.use(require('vue-electron'))
 Vue.config.productionTip = false
 Vue.use(Drag)
-
-/** plugins install */
-
+Vue.use(PlaceholderComponent)
 
 /* eslint-disable no-new */
 new Vue({

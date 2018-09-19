@@ -14,13 +14,24 @@ export const ownAppResolve = function() {
     return path.resolve.apply(path, [process.cwd()].concat(args));
 }
 
+/**
+ * 兼容window和mac路径解析问题
+ */
 export const formatter = function() {
     const args = Array.prototype.slice.call(arguments, 0);
     return  path.resolve.apply(path, ['../../'].concat(args));
 }
 
-export const basename = function(url) {
-    return path.basename(url);
+export const basename = function() {
+    return path.posix.basename.apply(path, arguments);
+}
+
+export const extname = function() {
+    return path.extname.apply(path, arguments);
+}
+
+export const readFileSync = function(url) {
+    return fs.readFileSync(formatter(url));
 }
 
 export const readdirSync = function(url) {

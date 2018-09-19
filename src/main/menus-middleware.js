@@ -1,5 +1,5 @@
 import { BrowserWindow, ipcMain, Menu, MenuItem } from 'electron'
-import { contextMenuLists } from './config'
+import { contextMenuLists, contextFilesMenuLists } from './config'
 
 /**接收菜单新建项目信息 */
 ipcMain.on('main-createNewProject', (event, arg) => {
@@ -13,6 +13,7 @@ ipcMain.on('main-createNewProject', (event, arg) => {
 ipcMain.on('tree-contextmenu', (event, arg) => {
     const menu = new Menu();
     
+    // 文件夹格式
     if(arg && arg.type === 'dir') {
         contextMenuLists.forEach(list => {
             menu.append(new MenuItem({
@@ -20,8 +21,14 @@ ipcMain.on('tree-contextmenu', (event, arg) => {
                 click: () => { list.click && list.click.apply(list, [event.sender, arg]) }
             }));
         });
-    
-        const win = BrowserWindow.fromWebContents(event.sender);
-        menu.popup(win);
-    }
+    }else {
+        contextFilesMenuLists.forEach(list => {
+            menu.append(new MenuItem({
+                ...list,
+                click: () => {list.click && list.click.apply(list, [event.sender, arg])}
+            }));
+        })
+    };
+    const win = BrowserWindow.fromWebContents(event.sender);
+    menu.popup(win);
 })

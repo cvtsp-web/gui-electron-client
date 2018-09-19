@@ -1,5 +1,5 @@
 import { vue } from './template.conf'
-import { basename } from './utils'
+import { basename, formatter } from './utils'
 import { Message } from 'element-ui'
 import fs from 'fs'
 import path from 'path'
@@ -33,10 +33,10 @@ export default class GeneratorPage {
     createRootDir() {
         this.dirPath = `${this.targetPath}/${this.dirName}`;
         if(!fs.existsSync(this.dirPath)) {
-            fs.mkdirSync(this.dirPath);
+            fs.mkdirSync(formatter(this.dirPath));
             this.generatorTemplateDir();
         }else {
-            Message.warning('文件重名, 请修改')
+            Message.warning('文件重名, 请修改');
         }
     }
 
@@ -61,26 +61,23 @@ export default class GeneratorPage {
         })
         .forEach(tpl => {            // tpl = { name, type}
             let filePath = `${this.dirPath}/${tpl.name}`;
-            tpl.type === 'dir' ? fs.mkdirSync(filePath) : wirteTemplateInFiles.call(this, filePath, tpl);
+            tpl.type === 'dir' 
+                ? fs.mkdirSync(formatter(filePath)) 
+                : wirteTemplateInFiles.call(this, filePath, tpl);
         });
 
         function wirteTemplateInFiles(filePath, item={}) {         
             if(/.vue$/.test(item.name)) {
-                fs.writeFileSync(filePath, vueTemplateParse.call(this, (item)));
+                fs.writeFileSync(formatter(filePath), vueTemplateParse.call(this, (item)));
             }else {
-                fs.writeFileSync(filePath);
+                fs.writeFileSync(formatter(filePath));
             }
         }
 
         function vueTemplateParse(params) {
             const template = this.vue.template;
             return render(template, {
-                inject: [
-                    '<div>',
-                    '<el-input />',
-                    '<el-select>',
-                    '<div />'
-                ].join('' + os.EOL),
+                inject: this.inject,
                 name: path.basename(params.name, '.vue')
             })
         }

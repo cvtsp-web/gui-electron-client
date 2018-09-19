@@ -155,11 +155,13 @@ export default {
             
             return components.map(component => {
                 return h(
-                    component.name, 
+                    // defaultName 为渲染时的组件名称
+                    component.defaultName ? component.defaultName : component.name, 
                     {   
                         props: {
                             key: component.id,
-                            ...component.props
+                            ...component.props,
+                            slots: component.slots
                         },
                         nativeOn: {
                             contextmenu: (event) => this.handlerContextmenu(event, component)

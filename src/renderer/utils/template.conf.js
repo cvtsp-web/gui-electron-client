@@ -6,21 +6,15 @@ const vue = {
         {name: '<dirName>.<stylePostfix>', type: 'file'},
         {name: 'index.js', type: 'file'}
     ],
-    template: `
-        <template>
-            <div class="{{name}}">
-                {{inject}}
-            </div>
-        </template>
-
-        <script>
+    template: `{{inject}}
+    
+    <script>
         
-        export default {
-            name: "{{name}}"
-        }
-        </script>
-    `
-};
+    export default {
+        name: "{{name}}"
+    }
+    </script>`
+    };
 
 module.exports = {
     vue

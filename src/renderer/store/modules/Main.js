@@ -11,6 +11,8 @@ export default {
     currentFrameName: '',
     // 当前构建的组件集合(扁平化数组: 存放vuex库中)
     drawComponentLists: [],
+    // 当前构建的组件模版
+    VUETEMPLATE: '',
     // 当前展示的组件列表
     currentComponentLists: [
       { 
@@ -81,6 +83,10 @@ export default {
       const idx = state.drawComponentLists.findIndex(val => val.id === id);
       state.drawComponentLists.splice(idx, 1, params);
       //state.drawComponentLists[idx] = params;
+    },
+
+    saveVueTemplate(state, tpl) {
+      state.VUETEMPLATE = tpl;
     }
   },
 

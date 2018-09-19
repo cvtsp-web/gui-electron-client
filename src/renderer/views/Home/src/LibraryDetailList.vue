@@ -37,11 +37,13 @@ export default {
 
 <style lang="scss" scoped>
 @import '../../../../../element-variables.scss';
+$library-views-height: 240px;
 .library-detaillist {
     width: 300px;
     min-height: 100px;
     position: fixed;
-    top: 10px;
+    bottom: 20px;
+    top: $library-views-height + 60;
     left: 10px;
     padding: 10px;
     border-radius: $--notification-radius;

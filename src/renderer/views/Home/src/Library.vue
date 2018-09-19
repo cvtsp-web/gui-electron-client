@@ -19,7 +19,7 @@
 
         <!-- 拖拽的展示区域 -->
         <div class="library-drag" ref="library">
-            <el-tabs>
+            <el-tabs type="card">
                 <el-tab-pane label="拖拽区域">
                     <library-drag-component :data="findComponentLists" />
                 </el-tab-pane>
