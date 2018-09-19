@@ -31,6 +31,11 @@ function createWindow () {
   mainWindow.on('closed', () => {
     mainWindow = null
   })
+
+  mainWindow.webContents.on('will-navigate', (event, url) => {
+    event.preventDefault();
+    event.sender.send('draged-file', url);
+  })
 }
 
 app.on('ready', createWindow)
@@ -46,3 +51,4 @@ app.on('activate', () => {
     createWindow()
   }
 })
+

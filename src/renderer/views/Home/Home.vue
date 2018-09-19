@@ -44,11 +44,14 @@ export default {
 
         // 右击--进入拖拽区域
         this.$electron.ipcRenderer.on('enter-dragarea', this.parseFilesInContent);
+
+        // 拖拽文件到app中
+        this.$electron.ipcRenderer.on('draged-file', this.saveDirInLibrary)
         
     },
 
     methods: {
-        ...mapMutations('Main', ['saveDrawComponents']),
+        ...mapMutations('Main', ['saveDrawComponents', 'setCacheDir']),
 
         enterCreateProject(event, url) {
             this.$router.push({ 
@@ -107,6 +110,10 @@ export default {
             }else {
                 Message({type: 'warning', message: '该文件不是一个组件'});
             }
+        },
+
+        saveDirInLibrary(event, url) { 
+            this.setCacheDir(url);
         }
     }
 }

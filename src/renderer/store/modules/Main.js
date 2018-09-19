@@ -4,7 +4,7 @@ export default {
     // 目前默认框架名称vue
     frameName: 'vue',
     // 存储的项目路径
-    cacheDirLists: ['work/electron-text-upload/xiaoxiong'],
+    cacheDirLists: [],
     // 当前项目名称
     currentProjectName: '',
     // 当前项目的框架

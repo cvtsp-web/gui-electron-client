@@ -15,10 +15,12 @@ function enterDragArea(sender, params) {
     sender.send('enter-dragarea', params);
 }
 
+// 文件夹树的右击事件
 const contextMenuLists = [
     { label: '开始生成页面', click: generatorPage}
 ]
 
+// 文件的右击事件
 const contextFilesMenuLists = [
     { label: '进入拖拽区域', click: enterDragArea}
 ];

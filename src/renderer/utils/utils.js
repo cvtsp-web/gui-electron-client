@@ -18,7 +18,13 @@ export const ownAppResolve = function() {
  * 兼容window和mac路径解析问题
  */
 export const formatter = function() {
-    const args = Array.prototype.slice.call(arguments, 0);
+    var args = Array.prototype.slice.call(arguments, 0);
+    //file:///E:/xiaoxiong ---> E:/xiaoxiong
+    if(os.platform() === 'win32' && args[0]) {
+        const slice = args[0].indexOf('///') + 3;
+        args[0] = args[0].substring(slice);
+    }
+    
     return  path.resolve.apply(path, ['../../'].concat(args));
 }
 
