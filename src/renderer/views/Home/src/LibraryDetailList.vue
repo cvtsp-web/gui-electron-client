@@ -1,6 +1,6 @@
 <template>
     <div class="library-detaillist" v-show="visible">
-        <i class="library-detaillist__close el-icon-close" @click="hanlderClose"></i>
+        <!-- <i class="library-detaillist__close el-icon-close"></i> -->
         <div class="library-detaillist__body">
             <component 
                 v-for="(item, index) in data" 
@@ -9,6 +9,8 @@
                 v-dragging="{item: item, group: 'detaillist', target: 'library'}">
             </component>
         </div>
+
+        <div class="library-detaillist__empty" v-show="isEmpty">暂无数据</div>
     </div>
 </template>
 
@@ -17,13 +19,19 @@ export default {
     props: {
         visible: {
             type: Boolean,
-            default: false
+            default: true
         },
         data: {
             type: Array,
             default() {
                 return []
             }
+        }
+    },
+
+    computed: {
+        isEmpty() {
+            return this.data.length > 0 ? false : true;
         }
     },
 
@@ -46,8 +54,8 @@ $library-views-height: 240px;
     top: $library-views-height + 60;
     left: 10px;
     padding: 10px;
-    border-radius: $--notification-radius;
-    box-shadow: $--notification-shadow;
+    border-radius: $--box-shadow-base;
+    box-shadow: $--box-shadow-base;
     background-color: $--color-white;
     transition: $--all-transition;
 }
@@ -63,5 +71,15 @@ $library-views-height: 240px;
 }
 .library-detaillist__body {
     padding-top: 25px;
+}
+$font-size: 20px;
+.library-detaillist__empty {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    font-size: $font-size;
+    margin-left: -$font-size * 2;
+    margin-top: -$font-size * 2;
+    color: $--border-color-lighter;
 }
 </style>

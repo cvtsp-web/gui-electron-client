@@ -6,7 +6,7 @@ export default {
     // 存储的项目路径
     cacheDirLists: [],
     // 当前项目名称
-    currentProjectName: '',
+    currentProjectName: '--',
     // 当前项目的框架
     currentFrameName: '',
     // 当前构建的组件集合(扁平化数组: 存放vuex库中)
@@ -44,6 +44,12 @@ export default {
       if(state.cacheDirLists.indexOf(payload) < 0) {
         state.cacheDirLists.push(payload);
       }
+    },
+
+    // 从文件缓存删除
+    deleteCacheDir(state, payload) {
+      const idx = state.cacheDirLists.findIndex(val => val === payload);
+      state.cacheDirLists.splice(idx, 1);
     },
 
     /**

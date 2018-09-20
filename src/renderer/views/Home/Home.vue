@@ -2,7 +2,7 @@
     <el-container class="home">
         <el-aside class="home-aside">
             <el-scrollbar wrap-class="el-select-dropdown__wrap">
-                <dir-tree />
+                <dir-tree ref="dirTree" />
                 <slot name="pop"></slot>
             </el-scrollbar>
         </el-aside>
@@ -17,7 +17,13 @@ import Library from './src/Library'
 import DirTree from './src/DirTree'
 import Generator from '@/utils/Generator'
 import { MessageBox, Message, Scrollbar } from 'element-ui'
-import { checkPostcssFromPackage, extname, readFileSync, basename } from '@/utils/utils'
+import { 
+    extname, 
+    basename,
+    formatter,
+    readFileSync, 
+    removeDirOrFile, 
+    checkPostcssFromPackage } from '@/utils/utils'
 import { mapState, mapMutations } from 'vuex'
 
 export default {
@@ -32,12 +38,18 @@ export default {
     },
 
     computed: {
-        ...mapState('Main', ['VUETEMPLATE'])
+        ...mapState('Main', ['VUETEMPLATE']),
+
+        treeInstanceLists() {
+            return this.$refs['dirTree'].TREE;
+        }
     },
 
     mounted() {
         // 进入创建项目页面
         this.$electron.ipcRenderer.on('createNewProject', this.enterCreateProject);
+
+        this.$electron.ipcRenderer.on('remove-from-wrokspace', this.removeFromWrokspace);
 
         // 右击--生成页面
         this.$electron.ipcRenderer.on('generator-page', this.generatorPage);
@@ -46,12 +58,19 @@ export default {
         this.$electron.ipcRenderer.on('enter-dragarea', this.parseFilesInContent);
 
         // 拖拽文件到app中
-        this.$electron.ipcRenderer.on('draged-file', this.saveDirInLibrary)
+        this.$electron.ipcRenderer.on('draged-file', this.saveDirInLibrary);
+
+        // 删除文件或文件夹
+        this.$electron.ipcRenderer.on('remove-dir', this.removeDirectory);
         
     },
 
     methods: {
-        ...mapMutations('Main', ['saveDrawComponents', 'setCacheDir']),
+        ...mapMutations('Main', [
+            'saveDrawComponents', 
+            'setCacheDir',
+            'deleteCacheDir'
+        ]),
 
         enterCreateProject(event, url) {
             this.$router.push({ 
@@ -72,14 +91,24 @@ export default {
                     inputErrorMessage: '文件名格式不正确(不能存在特殊符号)'
                 });
 
-                this.generatorInstance.create({
-                    frame: 'vue',
-                    dirName: value,
-                    targetPath: params.path,
-                    inject: this.VUETEMPLATE,
-                    stylePostfix: 'css'
-                });
+                this.treeInstanceLists[params.idx].append({
+                    name: value,
+                    root: params.root,
+                    idx: params.idx,
+                    path: params.path,
+                    type: 'dir',
+                    leaf: false
+                }, params)
+                
+                // this.generatorInstance.create({
+                //     frame: 'vue',
+                //     dirName: value,
+                //     targetPath: params.path,
+                //     inject: this.VUETEMPLATE,
+                //     stylePostfix: 'css'
+                // });
             } catch (error) {
+                console.log(error)
                 Message({type: 'info', message: '你取消了此次操作'});
             }
         },
@@ -113,7 +142,21 @@ export default {
         },
 
         saveDirInLibrary(event, url) { 
-            this.setCacheDir(url);
+            this.setCacheDir(formatter(url));
+        },
+
+        /**
+         * 将文件从工作区删除(逻辑删除)
+         */
+        removeFromWrokspace(event, params) {
+            this.deleteCacheDir(params.path);
+        },
+
+        /**
+         * 将文件从本地删除(物理删除)
+         */
+        removeDirectory(event, params) {
+            //removeDirOrFile(params.path);
         }
     }
 }

@@ -1,7 +1,7 @@
 <template>
     <div class="library">
         <!-- 标题提示 -->
-        <el-alert :title="projectMessage" type="success" :closable="false" class="library-path">
+        <el-alert :title="currentProjectName" type="success" :closable="false" class="library-path">
             <el-popover
                 placement="bottom"
                 title="已下载的插件"
@@ -19,7 +19,7 @@
 
         <!-- 拖拽的展示区域 -->
         <div class="library-drag" ref="library">
-            <el-tabs type="card">
+            <el-tabs>
                 <el-tab-pane label="拖拽区域">
                     <library-drag-component :data="findComponentLists" />
                 </el-tab-pane>
@@ -42,7 +42,7 @@
             </el-card>
         </el-scrollbar>
 
-        <library-detail-list :visible.sync="libraryvisible" :data="libraryLists" />
+        <library-detail-list :data="libraryLists" />
     </div>
 </template>
 
@@ -89,15 +89,7 @@ export default {
             'drawComponentLists'
         ]),
 
-        ...mapGetters('Main', ['findComponentLists']),
-
-        projectMessage() {
-            return this.currentProjectName + (
-                this.currentFrameName === '' || !this.currentProjectName
-                    ? '--'
-                    : `(${this.currentFrameName}框架)`
-            )
-        }
+        ...mapGetters('Main', ['findComponentLists'])
     },
 
     async mounted() {     
@@ -120,7 +112,6 @@ export default {
         // 打开资源库的子组件列表
         openLibraryListHandler(name) {
             this.getLibraryChilds(name).then(data => {
-                this.libraryvisible = true;
                 this.libraryLists = data;
             })
             
@@ -136,6 +127,11 @@ $library-views-height: 240px;
     position: relative;
     display: flex;
     height: 100%;
+    // override
+    .el-alert--success {
+        background-color: $--color-primary-light-4;
+        color: $--color-white;
+    }
     .library-path {
         position: absolute;
         top: 0;

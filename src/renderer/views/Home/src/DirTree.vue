@@ -1,13 +1,15 @@
 <template>
     <div>
         <el-tree 
+            ref="tree"
             :key="index"
             :props="props"
-            :node-key="item"
+            node-key="id"
             v-for="(item, index) in cacheDirLists"
             lazy
             highlight-current
             :load="loadNodeHandler"
+            @mouseenter.native="handlerMouseenter(item, index)"
             @node-click="handlerClick"
             @node-contextmenu="handlerContextMenu">
             <span slot-scope="{ node, data }">
@@ -31,12 +33,18 @@ export default {
             props: {
                 label: 'name',
                 isLeaf: 'leaf'
-            }
+            },
+            currentIdx: 0,
+            currentRoot: ''
         }
     },
 
     computed: {
-        ...mapState('Main', ['cacheDirLists'])
+        ...mapState('Main', ['cacheDirLists']),
+
+        TREE() {
+            return this.$refs['tree'];
+        }
     },
 
     methods: {
@@ -51,32 +59,38 @@ export default {
             const { key } = node.store;
             // 初始化节点
             if(node.level === 0) {
+                let idx = this.cacheDirLists.length - 1;
+                let root = this.cacheDirLists[idx];
                 return resolve([{ 
                     id: 1,
-                    name: basename(key),
-                    root: key,
-                    path: key,
+                    idx,
+                    name: basename(root),
+                    root,
+                    path: root,
                     type: 'dir',
                     leaf: false
                 }]);
-            };
-            const { path: url } = node.data;
-            const childs = readdirSync(url)
-                .map(val => ({
-                    name: val,
-                    root: key,
-                    path: `${url}/${val}`,
-                    type: isDirectory(`${url}/${val}`) ? 'dir' : 'file',
-                    leaf: isDirectory(`${url}/${val}`) ? false : true
-                }));
-            return resolve(childs);
+            }else {
+                const { path: url, root } = node.data;
+                const childs = readdirSync(url)
+                    .map(val => ({
+                        id: Math.random().toFixed(5) * 100000,
+                        name: val,
+                        root,
+                        idx: this.currentIdx,
+                        path: `${url}/${val}`,
+                        type: isDirectory(`${url}/${val}`) ? 'dir' : 'file',
+                        leaf: isDirectory(`${url}/${val}`) ? false : true
+                    }));
+                return resolve(childs);
+            }
         },
 
         handlerClick(data, node, store) {
             if(data.root) {
                 const frameName = checkFrameFromPackage(data.root);
                 this.setCurrentProject({
-                    projectPath: data.path,
+                    projectPath: data.root,
                     frameName
                 });
             }
@@ -86,7 +100,18 @@ export default {
          * 树的右点击事件
          */
         handlerContextMenu(event, data, node, store) {
+            data.node = node;
             this.$electron.ipcRenderer.send('tree-contextmenu', data);
+        },
+        
+        /**
+         * 存储当前文件的根路径和序列号
+         * @param {String} root: 根路径
+         * @param {Number} index: 当前序列号
+         */
+        handlerMouseenter(root, index) {
+            this.currentIdx = index;
+            this.currentRoot = root;
         }
     }
 }

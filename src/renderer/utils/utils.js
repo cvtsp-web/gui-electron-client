@@ -20,7 +20,7 @@ export const ownAppResolve = function() {
 export const formatter = function() {
     var args = Array.prototype.slice.call(arguments, 0);
     //file:///E:/xiaoxiong ---> E:/xiaoxiong
-    if(os.platform() === 'win32' && args[0]) {
+    if(args[0] && args[0].indexOf('///') >= 0) {
         const slice = args[0].indexOf('///') + 3;
         args[0] = args[0].substring(slice);
     }
@@ -53,6 +53,19 @@ export const isDirectory = function(url) {
     const statSync = fs.statSync(formatter(url));
     return statSync.isDirectory();
 }
+
+/**
+ * 删除文件
+ * 根据路径判断是文件还是文件夹
+ */
+export const removeDirOrFile = function(url) {
+    if(isDirectory(url)) {
+        fs.rmdirSync(formatter(url));
+    }else {
+        fs.unlinkSync(formatter(url));
+    }
+}
+
 /**
  * 获取项目根目录的package.json的路径
  * @param {*} rootUrl 
